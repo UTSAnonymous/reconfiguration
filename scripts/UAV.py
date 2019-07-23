@@ -31,6 +31,9 @@ class UAV:
         #subscriber
         self.__poseSub = rospy.Subscriber(self.__name+'/ground_truth_to_tf/pose',PoseStamped,self.tf_callback)
 
+        #publisher
+        self.__cmdVelPub = rospy.Publisher(self.__name+'/cmd_vel',Twist,queue_size=10)
+
         # rosmsg for pose action lib
         self.__PoseStamped = PoseStamped()
         self.__PoseGoal = PoseGoal()
@@ -46,6 +49,16 @@ class UAV:
 
         # lock to prevent race condition in reading pose
         self.__lock = threading.Lock()
+
+        # dict to store connection relation
+        self.__connection = {}
+
+    def AddConnection(self, connection):
+        # check if the UAV is connected to 4 drones already
+        if len(self.__connection) < 4:
+
+        else:
+            return False
 
     def tf_callback(self, current_pos):
         # DEBUG: rospy.loginfo("Current position: [{}, {}, {}]".format(current_pos.pose.position.x, current_pos.pose.position.y, current_pos.pose.position.z,))
@@ -87,7 +100,6 @@ class UAV:
         if self.__called == True:
             self.__called = False
             result = self.__posClient.wait_for_result(rospy.Duration(Dur))
-
 
             return result
 

@@ -100,6 +100,37 @@ def generate_waypoints_2():
 
     return waypoints
 
+def generate_waypoints_3():
+    waypoints = []
+
+    #first waypoints
+    goal_pose_1 = Pose()
+    goal_pose_1.position.y = 0.0
+    goal_pose_1.position.z = 5.0
+    goal_pose_1.orientation.w = 1.0
+    waypoints.append(goal_pose_1)
+
+    goal_pose_2 = Pose()
+    goal_pose_2.position.y = 1.0
+    goal_pose_2.position.z = 5.0
+    goal_pose_2.orientation.w = 1.0
+    waypoints.append(goal_pose_2)
+
+    goal_pose_3 = Pose()
+    goal_pose_3.position.y = 2.0
+    goal_pose_3.position.z = 5.0
+    goal_pose_3.orientation.w = 1.0
+    waypoints.append(goal_pose_3)
+
+    goal_pose_4 = Pose()
+    goal_pose_4.position.y = 3.0
+    goal_pose_4.position.z = 5.0
+    goal_pose_4.orientation.w = 1.0
+    waypoints.append(goal_pose_4)
+
+    return waypoints
+
+
 #main for running the main loop
 def main():
     wp_counter = 0
@@ -109,6 +140,7 @@ def main():
 
     waypoint_1 = generate_waypoints_1()
     waypoint_2 = generate_waypoints_2()
+    waypoint_3 = generate_waypoints_3()
 
     #show that node is running
     rospy.loginfo("waypoint node running... \n")
@@ -116,21 +148,22 @@ def main():
     #create to object of UAV class
     UAV1 = UAV("uav1","base_link")
     UAV2 = UAV('uav2',"base_link")
+    UAV3 = UAV("uav3","base_link")
+    UAV4 = UAV('uav4',"base_link")
     CON = Connection()
 
     time.sleep(2)
     #takeoff
 
-    UAV1.TakeoffAction()
-    UAV2.TakeoffAction()
-
     #fly to Connection position
-    UAV1.PoseAction(waypoint_1[0])
-    UAV2.PoseAction(waypoint_2[0])
-    result1 = UAV1.PoseActionWaitClient(10)
-    result2 = UAV2.PoseActionWaitClient(10)
-    rospy.loginfo(result1)
-    rospy.loginfo(result2)
+    UAV1.PoseAction(waypoint_3[0])
+    UAV2.PoseAction(waypoint_3[1])
+    UAV3.PoseAction(waypoint_3[2])
+    UAV4.PoseAction(waypoint_3[3])
+    UAV1.PoseActionWaitClient(10)
+    UAV2.PoseActionWaitClient(10)
+    UAV3.PoseActionWaitClient(10)
+    UAV4.PoseActionWaitClient(10)
 
     #code here go into a function
     #def rotate(parent, child(moving one))
@@ -139,95 +172,15 @@ def main():
     pose1 = UAV1.GetPose()
     pose2 = UAV2.GetPose()
     clockwise = True
-    goal = Pose()
-    goal.position.x = 1.0
-    goal.position.y = 0.0
-    goal.position.z = 5.0
 
-    # get transfrom from UAV1 to UAV2
-    b_uav1_a = tf.transformations.translation_matrix((pose1.position.x, pose1.position.y, pose1.position.z))
-    uav1_qx = tf.transformations.quaternion_about_axis(pose1.orientation.x, (1,0,0))
-    uav1_qy = tf.transformations.quaternion_about_axis(pose1.orientation.y, (0,1,0))
-    uav1_qz = tf.transformations.quaternion_about_axis(pose1.orientation.z, (0,0,1))
-    uav1_q = tf.transformations.quaternion_multiply(uav1_qx, uav1_qy)
-    uav1_q = tf.transformations.quaternion_multiply(uav1_q, uav1_qz)
-    uav1_Rq = tf.transformations.quaternion_matrix(uav1_q)
-    b_uav1_T = tf.transformations.concatenate_matrices(uav1_Rq, b_uav1_a)
+    CON.Attach(UAV1.model_name,UAV1.link_name,UAV2.model_name,UAV2.link_name,"fixed", [0, 0, 0, 0, 0, 0, 0])
+    CON.Attach(UAV2.model_name,UAV2.link_name,UAV3.model_name,UAV3.link_name,"fixed", [0, 0, 0, 0, 0, 0, 0])
+    CON.Attach(UAV3.model_name,UAV3.link_name,UAV4.model_name,UAV4.link_name,"fixed", [0, 0, 0, 0, 0, 0, 0])
 
-    b_uav2_a = tf.transformations.translation_matrix((pose2.position.x, pose2.position.y, pose2.position.z))
-    uav2_qx = tf.transformations.quaternion_about_axis(pose2.orientation.x, (1,0,0))
-    uav2_qy = tf.transformations.quaternion_about_axis(pose2.orientation.y, (0,1,0))
-    uav2_qz = tf.transformations.quaternion_about_axis(pose2.orientation.z, (0,0,1))
-    uav2_q = tf.transformations.quaternion_multiply(uav2_qx, uav2_qy)
-    uav2_q = tf.transformations.quaternion_multiply(uav2_q, uav2_qz)
-    uav2_Rq = tf.transformations.quaternion_matrix(uav2_q)
-    b_uav2_T = tf.transformations.concatenate_matrices(uav2_Rq, b_uav2_a)
-
-    uav2_b_T = tf.transformations.inverse_matrix(b_uav2_T)
-    uav2_uav1_T = tf.transformations.concatenate_matrices(uav2_b_T, b_uav1_T)
-
-    # this result identify if the UAV or connected along x axis or y axis
-    transl = tf.transformations.translation_from_matrix(uav2_uav1_T)
-
-    A = (0.5, 0.5)
-    B = (-0.5, 0.5)
-    C = (-0.5, -0.5)
-    D = (0.5, -0.5)
-
-    #check if its connected horizontally
-    x = round(transl[0],1)
-    y = round(transl[1],1)
-
-    # rotation depends on clockwise or anticlockwise rotation
-    if clockwise == True:
-        # horizontally
-        if x == 0.0:
-            if y > 0.0:
-                joint_x = -0.5
-                joint_y = 0.5
-            else:
-                joint_x = 0.5
-                joint_y = -0.5
-            # vertically
-        else:
-            if x > 0.0:
-                joint_x = 0.5
-                joint_y = 0.5
-            else:
-                joint_x = -0.5
-                joint_y = -0.5
-    # anticlockwise
-    else:
-        # horizontally
-        if x == 0.0:
-            if y > 0.0:
-                joint_x = 0.5
-                joint_y = 0.5
-            else:
-                joint_x = -0.5
-                joint_y = -0.5
-            # vertically
-        else:
-            if x > 0.0:
-                joint_x = 0.5
-                joint_y = -0.5
-            else:
-                joint_x = 0.5
-                joint_y = -0.5
-
-    time.sleep(1)
-    CON.Attach(UAV1.model_name,UAV1.link_name,UAV2.model_name,UAV2.link_name,"revolute", [joint_x, joint_y, 0, 0, 0, 0, 0])
-    time.sleep(1)
-
-    #generate trajectory
-
-    #execute trajectory
-
-    
     #-----------------------------------------#
-    time.sleep(1)
-    CON.Detach(UAV1.model_name,UAV1.link_name,UAV2.model_name,UAV2.link_name)
-    time.sleep(1)
+    #time.sleep(1)
+    #CON.Detach(UAV1.model_name,UAV1.link_name,UAV2.model_name,UAV2.link_name)
+    #time.sleep(1)
 
     #UAV1.PoseAction(waypoint_1[1])
     #UAV1.PoseActionWaitClient(50)

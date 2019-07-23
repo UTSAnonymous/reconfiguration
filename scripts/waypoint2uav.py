@@ -132,7 +132,7 @@ def main():
     rospy.loginfo(result2)
 
     time.sleep(1)
-    CON.Attach(UAV1.model_name,UAV1.link_name,UAV2.model_name,UAV2.link_name,"revolute", [0.5, -0.5, 0, 0, 0, 0, 0])
+    CON.Attach(UAV1.model_name,UAV1.link_name,UAV2.model_name,UAV2.link_name,"fixed", [0.5, -0.5, 0, 0, 0, 0, 0])
     time.sleep(1)
 
     UAV1.PoseAction(waypoint_1[1])

@@ -53,10 +53,38 @@ class UAV:
         # dict to store connection relation
         self.__connection = {}
 
-    def AddConnection(self, connection):
+    # get connection list
+    def GetUAVConnection(self):
+        return self.__connection
+
+    # check connection list
+    def CheckUAVConnection(self, UAV):
+        if len(self.__connection) > 0:
+            if UAV in self.__connection:
+                return True
+            else:
+                return False
+        else:
+            return False
+
+    # function for Adding a new UAV connection to this UAV
+    def AddConnection(self, UAV, transform):
         # check if the UAV is connected to 4 drones already
         if len(self.__connection) < 4:
+            self.__connection[UAV] = transform
+            rospy.loginfo("Added UAV connection dict")
+            return True
+        else:
+            return False
 
+    # function for removing a UAV from the connection dict
+    def RemoveConnection(self, UAV):
+
+        if len(self.__connection) > 0:
+            if UAV in self.__connection:
+                del self.__connection[UAV]
+                rospy.loginfo("Removed UAV from connection dict")
+                return True
         else:
             return False
 
@@ -102,6 +130,19 @@ class UAV:
             result = self.__posClient.wait_for_result(rospy.Duration(Dur))
 
             return result
+
+    def Hover(self):
+        vel_msg = Twist()
+        vel_msg.linear.x = 0
+        vel_msg.linear.y = 0
+        vel_msg.linear.z = 0
+        vel_msg.angular.x = 0
+        vel_msg.angular.y = 0.00000000000001
+        vel_msg.angular.z = 0
+        self.__cmdVelPub.publish(vel_msg)
+
+        vel_msg.angular.y = 0
+        self.__cmdVelPub.publish(vel_msg)
 
     #TODO: fix takeoff, doesnt really work right now
     def TakeoffAction(self):

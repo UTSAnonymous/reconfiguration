@@ -19,7 +19,8 @@ class Connection:
         self.__detactSrv.wait_for_service()
         rospy.loginfo("Connection service initialised")
 
-    def Attach(self,model_name_1, link_name_1, model_name_2,link_name_2,type, pose):
+    # function for Gazebo service call
+    def AttachService(self,model_name_1, link_name_1, model_name_2,link_name_2,type, pose):
         req = AttachRequest()
         req.model_name_1 = model_name_1
         req.link_name_1 = link_name_1
@@ -31,7 +32,8 @@ class Connection:
         result = self.__attachSrv.call(req)
         return result
 
-    def Detach(self,model_name_1, link_name_1, model_name_2, link_name_2):
+    #function for Gazebo service call
+    def DetachService(self,model_name_1, link_name_1, model_name_2, link_name_2):
         req = DetachRequest()
         req.model_name_1 = model_name_1
         req.link_name_1 = link_name_1
@@ -40,6 +42,12 @@ class Connection:
 
         result = self.__detactSrv.call(req)
         return result
+
+    def RemoveJoint(self, UAV1, UAV2):
+        self.DetachService(UAV1.model_name,UAV1.link_name,UAV2.model_name,UAV2.link_name)
+
+    def FixedJoint(self, UAV1, UAV2):
+        self.AttachService(UAV1.model_name,UAV1.link_name,UAV2.model_name,UAV2.link_name,"fixed", [0, 0, 0, 0, 0, 0, 0])
 
     def RevoluteJoint(self, UAV1, UAV2, isClockwise):
         pose1 = UAV1.GetPose()
@@ -116,7 +124,7 @@ class Connection:
                     joint_y = -0.5
 
         time.sleep(1)
-        result = self.Attach(UAV1.model_name,UAV1.link_name,UAV2.model_name,UAV2.link_name,"revolute", [joint_x, joint_y, 0, 0, 0, 0, 0])
+        result = self.AttachService(UAV1.model_name,UAV1.link_name,UAV2.model_name,UAV2.link_name,"revolute", [joint_x, joint_y, 0, 0, 0, 0, 0])
         time.sleep(1)
 
         return result

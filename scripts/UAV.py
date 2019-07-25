@@ -72,7 +72,7 @@ class UAV:
         # check if the UAV is connected to 4 drones already
         if len(self.__connection) < 4:
             self.__connection[UAV] = transform
-            rospy.loginfo("Added UAV connection dict")
+            rospy.loginfo("Added " + UAV.model_name +" connection to " + self.model_name + " dict")
             return True
         else:
             return False
@@ -83,7 +83,7 @@ class UAV:
         if len(self.__connection) > 0:
             if UAV in self.__connection:
                 del self.__connection[UAV]
-                rospy.loginfo("Removed UAV from connection dict")
+                rospy.loginfo("Removed " + UAV.model_name +" connection from " + self.model_name)
                 return True
         else:
             return False

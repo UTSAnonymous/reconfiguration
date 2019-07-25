@@ -20,6 +20,7 @@ class Structure:
         self.__UAVS = [UAV]
         self.__CON = Connection()
         self.__centroid = Pose()
+        self.__tolerance = 0.05
 
     def ConnectSingleUAV(self, connecting_UAV):
         '''
@@ -145,13 +146,52 @@ class Structure:
 
             UAV_goal.append(new_pose)
 
+        # interpolate goal for a smoother trajectory
+        UAV_interpolated_goal = []
+        for i in range(1,51):
+            current_goal = []
+            for j in range(len(UAV_goal)):
+                pose = self.__UAVS[j].GetPose()
+                goal_pose = UAV_goal[j]
+
+                #calculate interpolated goal
+                if -self.__tolerance < goal_pose.position.x - pose.position.x < self.__tolerance:
+                    x_new = goal_pose.position.x
+                else:
+                    x_new = (((goal_pose.position.x - pose.position.x)/50) * i) + pose.position.x
+
+                if -self.__tolerance < goal_pose.position.y - pose.position.y < self.__tolerance:
+                    y_new = goal_pose.position.y
+                else:
+                    y_new = (((goal_pose.position.y - pose.position.y)/50) * i) + pose.position.y
+
+                if -self.__tolerance < goal_pose.position.z - pose.position.z < self.__tolerance:
+                    z_new = goal_pose.position.z
+                else:
+                    z_new = (((goal_pose.position.z - pose.position.z)/50) * i) + pose.position.z
+
+                #DEBUG: print("x : " + str(x_new) + "y : " + str(y_new) + "z : " + str(z_new))
+
+                point = Point(x_new, y_new, z_new)
+                quaternion = Quaternion(goal_pose.orientation.x, goal_pose.orientation.y,
+                                                goal_pose.orientation.z, goal_pose.orientation.w)
+                new_pose = Pose(point, quaternion)
+
+                current_goal.append(new_pose)
+
+            UAV_interpolated_goal.append(current_goal)
+
         # send new pose commands
-        for i in range(len(UAV_goal)):
-            self.__UAVS[i].PoseAction(UAV_goal[i])
+        for UAV_goal in UAV_interpolated_goal:
+            for i in range(len(UAV_goal)):
+                self.__UAVS[i].PoseAction(UAV_goal[i])
+            time.sleep(0.4)
 
         # wait for execution to end
-        for i in range(len(UAV_goal)):
+        for i in range(len(self.__UAVS)):
             self.__UAVS[i].PoseActionWaitClient(50)
+
+        rospy.loginfo("UAV structure movement done!")
 
 
     def CreateTFMatrix(self, pose):

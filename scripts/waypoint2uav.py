@@ -169,8 +169,6 @@ def main():
     UAV4.PoseAction(waypoint_1[3])
     UAV4.PoseActionWaitClient(50)
 
-    rospy.loginfo(str(len(UAV4.GetUAVConnection())))
-
     time.sleep(5)
     goal_pose.position.z = 3.0
     goal_pose.position.x = 0.0
@@ -179,8 +177,14 @@ def main():
 
     time.sleep(5)
     goal_pose.position.z = 3.0
-    goal_pose.position.x = 1.0
-    goal_pose.position.y = 1.0
+    goal_pose.position.x = -1.0
+    goal_pose.position.y = -1.0
+    MAIN_STRUCTURE.StructureGoToPose(goal_pose)
+
+    time.sleep(5)
+    goal_pose.position.z = 5.0
+    goal_pose.position.x = -1.0
+    goal_pose.position.y = -1.0
     MAIN_STRUCTURE.StructureGoToPose(goal_pose)
 
     '''
@@ -192,8 +196,8 @@ def main():
     UAV2.PoseActionWaitClient(50)
     UAV3.PoseActionWaitClient(50)
     UAV4.PoseActionWaitClient(50)
-    '''
-    '''
+
+
     time.sleep(1)
     CON.Attach(UAV1.model_name,UAV1.link_name,UAV2.model_name,UAV2.link_name,"fixed", [0.5, -0.5, 0, 0, 0, 0, 0])
     time.sleep(1)

@@ -22,7 +22,7 @@ class Structure:
         self.__centroid = Pose()
         self.__tolerance = 0.05
 
-    def ConnectSingleUAV(self, connecting_UAV):
+    def connectSingleUAV(self, connecting_UAV):
         '''
         1. Check if the connecting UAV exist in the Structure
         2. Check which existing UAV in the structure is closest to it
@@ -31,13 +31,13 @@ class Structure:
         '''
 
         if connecting_UAV not in self.__UAVS:
-            poseUAV = connecting_UAV.GetPose()
+            poseUAV = connecting_UAV.getPose()
             closest_existing_UAV = []
 
             for existing_UAV in self.__UAVS:
 
                 # calculate the distance between each of the existing_UAV with UAV
-                pose = existing_UAV.GetPose()
+                pose = existing_UAV.getPose()
                 dist = math.sqrt( (pose.position.x-poseUAV.position.x)**2 + (pose.position.y-poseUAV.position.y)**2 )
 
                 # store UAV that is close to the connecting UAV in a list
@@ -54,59 +54,59 @@ class Structure:
             #TODO: check if any of the existing_UAV are connected to the connecting UAV already
 
             # Create connection with each of the UAV and add connection dict
-            b_connecting_T = self.CreateTFMatrix(connecting_UAV.GetPose())
+            b_connecting_T = self.createTFMatrix(connecting_UAV.getPose())
             connecting_b_T = tf.transformations.inverse_matrix(b_connecting_T)
             for UAV in closest_existing_UAV:
 
                 rospy.loginfo("Connecting " + UAV.model_name + " with " + connecting_UAV.model_name)
 
                 # calculate transfrom for each connection
-                b_UAV_T = self.CreateTFMatrix(UAV.GetPose())
+                b_UAV_T = self.createTFMatrix(UAV.getPose())
                 connecting_UAV_T = tf.transformations.concatenate_matrices(connecting_b_T, b_UAV_T)
                 UAV_connecting_T = tf.transformations.inverse_matrix(connecting_UAV_T)
 
-                self.__CON.FixedJoint(UAV, connecting_UAV)
-                UAV.AddConnection(connecting_UAV, UAV_connecting_T)
-                connecting_UAV.AddConnection(UAV, connecting_UAV_T)
+                self.__CON.fixedJoint(UAV, connecting_UAV)
+                UAV.addConnection(connecting_UAV, UAV_connecting_T)
+                connecting_UAV.addConnection(UAV, connecting_UAV_T)
 
             # add connecting UAV to structure
             self.__UAVS.append(connecting_UAV)
 
             return True
 
-    def DisconnectSingleUAV(self, disconnecting_UAV):
+    def disconnectSingleUAV(self, disconnecting_UAV):
 
         # remove UAV from Structure
         self.__UAVS.remove(disconnecting_UAV)
 
         # return a dict
-        connection = disconnecting_UAV.GetUAVConnection()
+        connection = disconnecting_UAV.getUAVConnection()
 
         uav_list = []
         for UAV in connection:
             rospy.loginfo("Disconnecting " + UAV.model_name + " from " + disconnecting_UAV.model_name)
-            self.__CON.RemoveJoint(UAV, disconnecting_UAV)
+            self.__CON.removeJoint(UAV, disconnecting_UAV)
             uav_list.append(UAV)
 
         for UAV in uav_list:
-            disconnecting_UAV.RemoveConnection(UAV)
-            UAV.RemoveConnection(disconnecting_UAV)
+            disconnecting_UAV.removeConnection(UAV)
+            UAV.removeConnection(disconnecting_UAV)
 
-    def GetCentroid(self):
+    def getCentroid(self):
         xT = 0
         yT = 0
         zT = 0
         n = len(self.__UAVS)
 
         for UAV in self.__UAVS:
-            pose = UAV.GetPose()
+            pose = UAV.getPose()
             xT = xT + pose.position.x
             yT = yT + pose.position.y
             zT = zT + pose.position.z
 
         return (xT/n, yT/n, zT/n)
 
-    def StructureGoToPose(self, goalPose):
+    def structurePoseAction(self, goalPose):
         '''
         1. Calculate the centroid of the Structure
         2. Calculate the relative transfrom from centroid to each of the UAV
@@ -116,23 +116,23 @@ class Structure:
         *Blocking function
         '''
         # calculate centroid of structure
-        xC, yC, zC = self.GetCentroid()
+        xC, yC, zC = self.getCentroid()
 
         centroidPoint = Point(float(xC),float(yC),float(zC))
         centroidQuaternion = Quaternion(0,0,0,1.0)
         centroidPose = Pose(centroidPoint, centroidQuaternion)
 
-        b_centroid_T = self.CreateTFMatrix(centroidPose)
+        b_centroid_T = self.createTFMatrix(centroidPose)
         centroid_b_T = tf.transformations.inverse_matrix(b_centroid_T)
 
         # for the new pose, calculate new pose for individual UAV
-        goal_T = self.CreateTFMatrix(goalPose)
+        goal_T = self.createTFMatrix(goalPose)
 
         # calculate relative transform
         UAV_goal = []
         for UAV in self.__UAVS:
-            pose = UAV.GetPose()
-            b_UAV_T = self.CreateTFMatrix(pose)
+            pose = UAV.getPose()
+            b_UAV_T = self.createTFMatrix(pose)
 
             centroid_UAV_T = tf.transformations.concatenate_matrices(centroid_b_T, b_UAV_T)
             b_UAV_T_new = tf.transformations.concatenate_matrices(goal_T, centroid_UAV_T)
@@ -151,7 +151,7 @@ class Structure:
         for i in range(1,51):
             current_goal = []
             for j in range(len(UAV_goal)):
-                pose = self.__UAVS[j].GetPose()
+                pose = self.__UAVS[j].getPose()
                 goal_pose = UAV_goal[j]
 
                 #calculate interpolated goal
@@ -184,17 +184,17 @@ class Structure:
         # send new pose commands
         for UAV_goal in UAV_interpolated_goal:
             for i in range(len(UAV_goal)):
-                self.__UAVS[i].PoseAction(UAV_goal[i])
+                self.__UAVS[i].poseAction(UAV_goal[i])
             time.sleep(0.4)
 
         # wait for execution to end
         for i in range(len(self.__UAVS)):
-            self.__UAVS[i].PoseActionWaitClient(50)
+            self.__UAVS[i].poseActionWaitClient(50)
 
         rospy.loginfo("UAV structure movement done!")
 
 
-    def CreateTFMatrix(self, pose):
+    def createTFMatrix(self, pose):
 
         b_uav1_T = tf.transformations.translation_matrix((pose.position.x, pose.position.y, pose.position.z))
         uav1_qx = tf.transformations.quaternion_about_axis(pose.orientation.x, (1,0,0))
@@ -207,11 +207,8 @@ class Structure:
 
         return b_uav1_T
 
-    def GetNumOfUAV(self):
+    def getNumOfUAV(self):
         return len(self.__UAVS)
 
-    def StrucPoseAction(self, Pose):
-        pass
-
-    def GetCentreOfMass(self):
+    def getCentreOfMass(self):
         pass

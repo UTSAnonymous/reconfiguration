@@ -122,70 +122,70 @@ def main():
     rospy.loginfo("waypoint node running... \n")
 
     #create to object of UAV class
-    UAV1 = UAV("uav1","base_link")
-    UAV2 = UAV('uav2',"base_link")
-    UAV3 = UAV('uav3',"base_link")
-    UAV4 = UAV('uav4',"base_link")
+    UAV1 = UAV("uav1")
+    UAV2 = UAV('uav2')
+    UAV3 = UAV('uav3')
+    UAV4 = UAV('uav4')
 
     #takeoff
 
-    UAV1.TakeoffAction()
-    UAV2.TakeoffAction()
-    UAV3.TakeoffAction()
-    UAV4.TakeoffAction()
+    UAV1.takeoffAction()
+    UAV2.takeoffAction()
+    UAV3.takeoffAction()
+    UAV4.takeoffAction()
 
     #fly to Connection position
-    UAV1.PoseAction(waypoint_1[0])
+    UAV1.poseAction(waypoint_1[0])
     time.sleep(2)
-    UAV2.PoseAction(waypoint_1[1])
+    UAV2.poseAction(waypoint_1[1])
     time.sleep(2)
-    UAV3.PoseAction(waypoint_1[2])
+    UAV3.poseAction(waypoint_1[2])
     time.sleep(2)
-    UAV4.PoseAction(waypoint_1[3])
-    UAV1.PoseActionWaitClient(50)
-    UAV2.PoseActionWaitClient(50)
-    UAV3.PoseActionWaitClient(50)
-    UAV4.PoseActionWaitClient(50)
+    UAV4.poseAction(waypoint_1[3])
+    UAV1.poseActionWaitClient(50)
+    UAV2.poseActionWaitClient(50)
+    UAV3.poseActionWaitClient(50)
+    UAV4.poseActionWaitClient(50)
 
     time.sleep(7)
 
     # testing structure class
     MAIN_STRUCTURE = Structure(UAV1)
 
-    MAIN_STRUCTURE.ConnectSingleUAV(UAV2)
-    MAIN_STRUCTURE.ConnectSingleUAV(UAV3)
-    MAIN_STRUCTURE.ConnectSingleUAV(UAV4)
+    MAIN_STRUCTURE.connectSingleUAV(UAV2)
+    MAIN_STRUCTURE.connectSingleUAV(UAV3)
+    MAIN_STRUCTURE.connectSingleUAV(UAV4)
 
     goal_pose = Pose()
     goal_pose.position.z = 5.0
     goal_pose.position.x = 0.0
     goal_pose.position.y = 0.0
 
-    MAIN_STRUCTURE.StructureGoToPose(goal_pose)
+    MAIN_STRUCTURE.structurePoseAction(goal_pose)
 
     time.sleep(7)
-    MAIN_STRUCTURE.DisconnectSingleUAV(UAV4)
+    MAIN_STRUCTURE.disconnectSingleUAV(UAV4)
 
-    UAV4.PoseAction(waypoint_1[3])
-    UAV4.PoseActionWaitClient(50)
+    UAV4.poseAction(waypoint_1[3])
+    UAV4.poseActionWaitClient(50)
 
     time.sleep(5)
     goal_pose.position.z = 3.0
     goal_pose.position.x = 0.0
     goal_pose.position.y = 0.0
-    MAIN_STRUCTURE.StructureGoToPose(goal_pose)
+    MAIN_STRUCTURE.structurePoseAction(goal_pose)
 
     time.sleep(5)
     goal_pose.position.z = 3.0
     goal_pose.position.x = -1.0
     goal_pose.position.y = -1.0
-    MAIN_STRUCTURE.StructureGoToPose(goal_pose)
+    MAIN_STRUCTURE.structurePoseAction(goal_pose)
 
     time.sleep(5)
     goal_pose.position.z = 5.0
     goal_pose.position.x = -1.0
     goal_pose.position.y = -1.0
-    MAIN_STRUCTURE.StructureGoToPose(goal_pose)
+    MAIN_STRUCTURE.structurePoseAction(goal_pose)
 
     '''
     UAV1.PoseAction(waypoint_2[0])

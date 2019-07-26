@@ -12,12 +12,12 @@ from hector_uav_msgs.msg import *
 
 class UAV:
 
-    def __init__(self, name, link_name):
+    def __init__(self, name):
         # name is important and it should be similar to the
         # groupns in the launch file
         self.__name = name
         self.model_name = name
-        self.link_name = link_name
+        self.link_name = 'base_link'
 
         self.__posClient = actionlib.SimpleActionClient(self.__name+'/action/pose',PoseAction)
         self.__takeoffClient = actionlib.SimpleActionClient(self.__name+'/action/takeoff',TakeoffAction)
@@ -54,11 +54,11 @@ class UAV:
         self.__connection = {}
 
     # get connection list
-    def GetUAVConnection(self):
+    def getUAVConnection(self):
         return self.__connection
 
     # check connection list
-    def CheckUAVConnection(self, UAV):
+    def checkUAVConnection(self, UAV):
         if len(self.__connection) > 0:
             if UAV in self.__connection:
                 return True
@@ -68,7 +68,7 @@ class UAV:
             return False
 
     # function for Adding a new UAV connection to this UAV
-    def AddConnection(self, UAV, transform):
+    def addConnection(self, UAV, transform):
         # check if the UAV is connected to 4 drones already
         if len(self.__connection) < 4:
             self.__connection[UAV] = transform
@@ -78,7 +78,7 @@ class UAV:
             return False
 
     # function for removing a UAV from the connection dict
-    def RemoveConnection(self, UAV):
+    def removeConnection(self, UAV):
 
         if len(self.__connection) > 0:
             if UAV in self.__connection:
@@ -101,7 +101,7 @@ class UAV:
         # DEBUG: rospy.loginfo(str(len(self.__uavPoses))+"    " + self.__name)
         self.__lock.release()
 
-    def GetPose(self):
+    def getPose(self):
         pose = Pose()
 
         self.__lock.acquire()
@@ -114,7 +114,7 @@ class UAV:
 
         return pose
 
-    def PoseAction(self, Pose):
+    def poseAction(self, Pose):
         self.__PoseStamped.header.stamp = rospy.Time.now()
         ++self.__PoseStamped.header.seq
         self.__PoseStamped.header.frame_id = self.__name+"/world"
@@ -124,14 +124,14 @@ class UAV:
         self.__posClient.send_goal(self.__PoseGoal)
         self.__called = True
 
-    def PoseActionWaitClient(self, Dur):
+    def poseActionWaitClient(self, Dur):
         if self.__called == True:
             self.__called = False
             result = self.__posClient.wait_for_result(rospy.Duration(Dur))
 
             return result
 
-    def Hover(self):
+    def hover(self):
         vel_msg = Twist()
         vel_msg.linear.x = 0
         vel_msg.linear.y = 0
@@ -145,11 +145,11 @@ class UAV:
         self.__cmdVelPub.publish(vel_msg)
 
     #TODO: fix takeoff, doesnt really work right now
-    def TakeoffAction(self):
+    def takeoffAction(self):
         #self.__takeoffClient.send_goal(TakeoffGoal())
         pass
 
-    def LandingAction(self):
+    def landingAction(self):
         self.__landingPose.header.stamp = rospy.Time.now()
         ++self.__landingPose.header.seq
         self.__landingPose.header.frame_id = self.__name+"/world"

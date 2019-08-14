@@ -210,5 +210,8 @@ class Structure:
     def getNumOfUAV(self):
         return len(self.__UAVS)
 
+    def getUAVList(self):
+        return self.__UAVS
+
     def getCentreOfMass(self):
         pass

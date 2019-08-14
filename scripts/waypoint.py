@@ -123,6 +123,10 @@ def main():
     # testing Structures
     main = Structures(4)
 
+    group1 = ["uav1","uav2"]
+    group2 = ["uav3","uav4"]
+    list = [group1, group2]
+    main.disconnectUAV(list)
     '''
     # testing structure class
     MAIN_STRUCTURE = Structure(UAV1)

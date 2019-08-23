@@ -4,10 +4,11 @@ import roslib
 import rospy
 import actionlib
 import math
+from posecommands import simplifiedPoseMsg
 from UAV import UAV
 from connection import Connection
 from Structure import Structure
-from Structures import Structures
+from Superstructures import Superstructures
 
 from geometry_msgs.msg import *
 from hector_uav_msgs.msg import *
@@ -121,13 +122,17 @@ def main():
     rospy.loginfo("waypoint node running... \n")
 
     # testing Structures
-    main = Structures(4)
+    main = Superstructures(4)
+    dict = main.get2dArrayShape()
+    print(dict)
 
+
+    '''
     group1 = ["uav1","uav2"]
     group2 = ["uav3","uav4"]
     list = [group1, group2]
     main.disconnectUAV(list)
-    '''
+
     # testing structure class
     MAIN_STRUCTURE = Structure(UAV1)
 

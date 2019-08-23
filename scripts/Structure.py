@@ -106,6 +106,7 @@ class Structure:
 
         return (xT/n, yT/n, zT/n)
 
+    #TODO: Add rotation into pose action
     def structurePoseAction(self, goalPose):
         '''
         1. Calculate the centroid of the Structure
@@ -140,8 +141,7 @@ class Structure:
             #convert tf to pose
             x, y, z = tf.transformations.translation_from_matrix(b_UAV_T_new)
             point = Point(x, y, z)
-            quaternion = Quaternion(pose.orientation.x, pose.orientation.y,
-                                            pose.orientation.z, pose.orientation.w)
+            quaternion = Quaternion(0, 0, 0, 1)
             new_pose = Pose(point, quaternion)
 
             UAV_goal.append(new_pose)
@@ -191,6 +191,13 @@ class Structure:
         for i in range(len(self.__UAVS)):
             self.__UAVS[i].poseActionWaitClient(50)
 
+        # calculate and execute rotation
+        '''
+        1. determine if there is a z_rotation
+        2. get centroid and calculate distance of each uav to centroid
+        3.
+        '''
+
         rospy.loginfo("UAV structure movement done!")
 
 
@@ -215,3 +222,10 @@ class Structure:
 
     def getCentreOfMass(self):
         pass
+
+    def getUAVNameList(self):
+        name = []
+        for uav in self.__UAVS:
+            name.append(uav.model_name)
+
+        return name

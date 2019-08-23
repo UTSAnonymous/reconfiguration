@@ -2,6 +2,9 @@
 import time
 import rospy
 import roslib
+import math
+import tf
+import collections
 from Structure import Structure
 from UAV import UAV
 from connection import Connection
@@ -9,14 +12,14 @@ from connection import Connection
 from geometry_msgs.msg import *
 from hector_uav_msgs.msg import *
 
-#TODO:
 '''
 1. Create a structure class which takes an input of UAV list/ number of drones
 2. In the constructure then (maybe) create individual UAV object and insert into a Structure
 - The structures class consist of 1 or multiple structure class
 3. Consist of function which breaks or connect individual/ or multiple UAV
 '''
-class Structures():
+
+class Superstructures():
 
     def __init__(self, number_of_uav):
         self.__structure = []
@@ -149,5 +152,126 @@ class Structures():
             self.__structure.append(structure)
 
 
-    def structureGoToPose(self, structure, pose):
-        pass
+    def structureGoToPose(self, uav_name_list, pose):
+
+        exist = False
+        selectedStructure = None
+        # loop thru the structure list
+        for structure in self.__structure:
+            if collections.Counter(structure.getUAVNameList()) == collections.Counter(uav_name_list):
+                exist = True
+                selectedStructure = structure
+
+        if exist == False:
+            rospy.loginfo("Structure with list of uav does not exist")
+            return False
+
+        selectedStructure.structureGoToPose(pose)
+
+    def get2dArrayShape(self):
+        '''
+        1. check if there is only one structure in this class
+        2. get all of the UAV in the structure
+        3. do similar breath first search algorithm
+        4. convert the 2d coordinate to 2d list/ np array
+        '''
+
+        # check if there is only one structure
+        if len(self.__structure) != 1:
+            rospy.loginfo("Too many structure in this structures.")
+            return False
+
+        # get all the uav in the structure
+        uavs = self.__structure[0].getUAVList()
+        queue = []
+        completed = {}
+
+        # put the first uav into the queue and completed
+        queue.append(uavs[0])
+        counter = 0
+
+        # first UAV has the coordiante (0,0)
+        # coordinates is in a list
+        completed[uavs[0]] = [0,0]
+
+        while True:
+            current_uav = queue[counter]
+            connected_uav_dict = current_uav.getUAVConnection()
+
+            # loop through the list and add it to the queue if doesn'
+            # exist in the queue
+            for uav, trans in connected_uav_dict.items():
+                if uav not in queue:
+
+                    sc, sh, a, transl, p = tf.transformations.decompose_matrix(trans)
+                    x = y = 0
+
+                    # check if connected in x or y direction
+                    # if x val > y val
+                    if abs(transl[0]) > abs(transl[1]):
+                        if transl[0] > 0:
+                            x = 1
+                        else:
+                            x = -1
+                    else:
+                        if transl[1] > 0:
+                            y = 1
+                        else:
+                            y = -1
+
+                    current_pos = completed[current_uav]
+                    new_pos = [current_pos[0]+x, current_pos[1]+y]
+                    completed[uav] = new_pos
+
+                    queue.append(uav)
+
+            if len(completed) == len(uavs):
+                break
+
+            counter += 1
+
+        # convert 2d coordinate to start from (0,0)
+        smallest_x = smallest_y = 0
+        for uav, coordinate in completed.items():
+
+            # get the smallest value in x and y
+            if coordinate[0] < smallest_x:
+                smallest_x = coordinate[0]
+            if coordinate[1] < smallest_y:
+                smallest_x = coordinate[1]
+
+        # shift the smallest x and y = 0
+        for uav, coordinate in completed.items():
+
+            coordinate[0] = coordinate[0] - smallest_x
+            coordinate[1] = coordinate[1] - smallest_y
+
+        # output dict with key = uav name
+        output = {}
+        for uav, coordinate in completed.items():
+            output[uav.model_name] = coordinate
+
+        return output
+
+        '''
+        # convert to 8x8 2d list
+        output_array = [["0" for i in range(8)] for j in range(8)]
+
+        for i in range(8):
+            for j in range(8):
+
+                target = [j,i]
+                # loop thru completed to look for matching uav coor
+                for uav, coordinate in completed.items():
+                    if target == coordinate:
+                        output_array[i][j] = uav.model_name
+
+        return output_array
+        '''
+
+    def temp(self):
+        list = self.__structure[0].getUAVList()
+        dict = list[0].getUAVConnection()
+
+        for uav,tran in dict.items():
+            print(uav.model_name)

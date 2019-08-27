@@ -3,8 +3,8 @@ import time
 import rospy
 import roslib
 import math
-import tf
 import collections
+from tf.transformations import *
 from Structure import Structure
 from UAV import UAV
 from connection import Connection
@@ -52,7 +52,7 @@ class Superstructures():
             time.sleep(1)
 
             x = x + x_delta
-            if i%4 == 0 and i != 0:
+            if i%4== 0 and i != 0:
                 y = y + y_delta
                 x = 0
 
@@ -62,20 +62,55 @@ class Superstructures():
         # Insert all of the UAV into a single structure
         structure = Structure(uavs[0])
 
+
         for i in range(1,number_of_uav):
             structure.connectSingleUAV(uavs[i])
 
         # append single structure into self.__structures
         self.__structure.append(structure)
 
-    def connectUAV(self, uavs):
+
+    def connectStructure(self, list_1_name, list_2_name):
         '''
-        uavs is a nested list of uav names
+        1. check if the two list exist in the Superstructures
+        2. loop thru each of them on the second list to determine their distance
+        3. if less than 1.2m, create a connection
+        4. append list_2 uav into list_1
+        5. delete list_2 in self.__structure
         '''
-        pass
+        # loop thru the structure list
+        check_1 = check_2 = False
+        for structure in self.__structure:
+            if collections.Counter(structure.getUAVNameList()) == collections.Counter(list_1_name):
+                check_1 = True
+                main_structure = structure
+            if collections.Counter(structure.getUAVNameList()) == collections.Counter(list_2_name):
+                check_2 = True
+                secondary_structure = structure
+
+        if check_1 == False and check_2 == False:
+            rospy.loginfo("Connection list doesn't exist in the Superstructures class")
+            return False
+
+        #2 and 3. check distance of uav in list_2 with each uav in list_1
+        secondary_uav_list = secondary_structure.getUAVList()
+
+        for secondary in secondary_uav_list:
+            main_structure.connectSingleUAV(secondary)
+
+        #4 append those that are not connecting into a single structure
+        main_uav_list = main_structure.getUAVList()
+
+        for secondary in secondary_uav_list:
+            if secondary not in main_uav_list:
+                main_structure.appendUAVWithoutConnection(secondary)
+
+        #5. delete list 2
+        self.__structure.remove(secondary_structure)
 
 
-    def disconnectUAV(self, uavs_name_list):
+
+    def disconnectStructure(self, uavs_name_list):
         '''
         UAV is a list of list of uav names
         0. convert uav name list to uav object list
@@ -165,10 +200,10 @@ class Superstructures():
         if exist == False:
             rospy.loginfo("Structure with list of uav does not exist")
             return False
+        else:
+            selectedStructure.structurePoseAction(pose)
 
-        selectedStructure.structureGoToPose(pose)
-
-    def get2dArrayShape(self):
+    def getConnectionDict(self):
         '''
         1. check if there is only one structure in this class
         2. get all of the UAV in the structure
@@ -203,7 +238,7 @@ class Superstructures():
             for uav, trans in connected_uav_dict.items():
                 if uav not in queue:
 
-                    sc, sh, a, transl, p = tf.transformations.decompose_matrix(trans)
+                    sc, sh, a, transl, p = decompose_matrix(trans)
                     x = y = 0
 
                     # check if connected in x or y direction
@@ -268,6 +303,9 @@ class Superstructures():
 
         return output_array
         '''
+
+    def getStructureList(self):
+        return self.__structure
 
     def temp(self):
         list = self.__structure[0].getUAVList()

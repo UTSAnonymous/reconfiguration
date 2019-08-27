@@ -19,8 +19,8 @@ def generate_waypoints_1():
 
     #first waypoints
     goal_pose_1 = Pose()
-    goal_pose_1.position.x = 0.0
-    goal_pose_1.position.y = 0.0
+    goal_pose_1.position.x = 1.5
+    goal_pose_1.position.y = 1.0
     goal_pose_1.position.z = 5.0
     goal_pose_1.orientation.w = 1.0
 #    goal_pose_1.orientation.w = 0.7071068
@@ -30,7 +30,7 @@ def generate_waypoints_1():
     #second waypoint
     goal_pose_2 = Pose()
     goal_pose_2.position.x = 0.0
-    goal_pose_2.position.y = 1.0
+    goal_pose_2.position.y = 0.0
     goal_pose_2.position.z = 5.0
     goal_pose_2.orientation.w = 1.0
     #goal_pose_2.orientation.w = 0.7071068
@@ -40,7 +40,7 @@ def generate_waypoints_1():
     #third waypoints
     goal_pose_3 = Pose()
     goal_pose_3.position.x = 1.0
-    goal_pose_3.position.y = 1.0
+    goal_pose_3.position.y = 0.0
     goal_pose_3.position.z = 5.0
     goal_pose_3.orientation.w = 1.0
     waypoints.append(goal_pose_3)
@@ -68,7 +68,7 @@ def generate_waypoints_2():
     #first waypoints
     goal_pose_1 = Pose()
     goal_pose_1.position.x = 0.0
-    goal_pose_1.position.y = 1.0
+    goal_pose_1.position.y = 0.0
     goal_pose_1.position.z = 5.0
     goal_pose_1.orientation.w = 1.0
 #    goal_pose_1.orientation.w = 0.7071068
@@ -126,6 +126,9 @@ def main():
     dict = main.get2dArrayShape()
     print(dict)
 
+    group = ["uav1","uav2","uav3","uav4"]
+
+    main.structureGoToPose(group,waypoint_1[1])
 
     '''
     group1 = ["uav1","uav2"]

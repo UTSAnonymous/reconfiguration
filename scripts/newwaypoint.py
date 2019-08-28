@@ -6,7 +6,6 @@ import actionlib
 import math
 from posecommands import simplifiedPoseMsg
 from UAV import UAV
-from connection import Connection
 from Structure import Structure
 from Superstructures import Superstructures
 
@@ -19,7 +18,7 @@ def generate_waypoints_1():
 
     #first waypoints
     goal_pose_1 = Pose()
-    goal_pose_1 = simplifiedPoseMsg(0,0,5,0)
+    goal_pose_1 = simplifiedPoseMsg(0,0,5,90)
     waypoints.append(goal_pose_1)
 
     #second waypoint

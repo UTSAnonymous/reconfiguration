@@ -307,9 +307,12 @@ class Superstructures():
     def getStructureList(self):
         return self.__structure
 
-    def temp(self):
-        list = self.__structure[0].getUAVList()
-        dict = list[0].getUAVConnection()
+    def getStructureCentroid(self, name_list):
+        state = False
+        for structure in self.__structure:
+            if collections.Counter(structure.getUAVNameList()) == collections.Counter(name_list):
+                state = True
+                return structure.getCentroid()
 
-        for uav,tran in dict.items():
-            print(uav.model_name)
+        if state == False:
+            return False

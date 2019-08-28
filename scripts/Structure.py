@@ -243,11 +243,11 @@ class Structure:
             # generate a rotational trajectory with 1 degree interval
             uavs_goal = []
 
-            for i in range(1,abs(z_rot)+1):
+            for i in range(1,(abs(z_rot)+1)*2):
                 if z_rot < 0:
-                    angle = -i
+                    angle = -i/2
                 else:
-                    angle = i
+                    angle = i/2
 
                 goal = []
                 for uav_element in range(len(self.__UAVS)):

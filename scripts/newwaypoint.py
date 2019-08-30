@@ -4,7 +4,7 @@ import roslib
 import rospy
 import actionlib
 import math
-from posecommands import simplifiedPoseMsg
+from utility import *
 from UAV import UAV
 from Structure import Structure
 from Superstructures import Superstructures

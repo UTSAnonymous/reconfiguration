@@ -21,53 +21,80 @@ from hector_uav_msgs.msg import *
 
 class Superstructures():
 
-    def __init__(self, number_of_uav):
+    def __init__(self, number_of_uav, list_of_position):
         self.__structure = []
         self.__CON = Connection()
 
-        '''
-        1. Create the correct number of UAV object
-        2. Move each of them to a correct flying location
-        3. Put all into a single structure object
-        4. Append the single structure into self.__structures
-        '''
-        # create the correct number of UAV
-        uavs = []
-        for i in range(1, number_of_uav+1):
-            uavs.append(UAV("uav"+str(i)))
+        if number_of_uav == None:
 
-        # position the UAV in the initial starting position
-        x_delta = 1
-        y_delta = 1
-        x = 0
-        y = 0
-        z = 5
-        for i in range(number_of_uav):
-            pose = Pose(Point(x, y, z), Quaternion(0, 0, 0, 1))
+            num = len(list_of_position)
+            uavs = []
+            for i in range(1, num+1):
+                uavs.append(UAV("uav"+str(i)))
 
-            # fly to this position
-            uavs[i].takeoffAction()
-            uavs[i].poseAction(pose)
+            for i in range(num):
+                uavs[i].takeoffAction()
+                uavs[i].poseAction(list_of_position[i])
 
-            time.sleep(1)
+                time.sleep(1)
 
-            x = x + x_delta
-            if i%4== 0 and i != 0:
-                y = y + y_delta
-                x = 0
+            for uav in uavs:
+                uav.poseActionWaitClient(40)
 
-        for uav in uavs:
-            uav.poseActionWaitClient(50)
+            # Insert all of the UAV into a single structure
+            structure = Structure(uavs[0])
 
-        # Insert all of the UAV into a single structure
-        structure = Structure(uavs[0])
+            for i in range(1,number_of_uav):
+                structure.connectSingleUAV(uavs[i])
+
+            # append single structure into self.__structures
+            self.__structure.append(structure)
+
+        else:
+            '''
+            1. Create the correct number of UAV object
+            2. Move each of them to a correct flying location
+            3. Put all into a single structure object
+            4. Append the single structure into self.__structures
+            '''
+            # create the correct number of UAV
+            uavs = []
+            for i in range(1, number_of_uav+1):
+                uavs.append(UAV("uav"+str(i)))
+
+            # position the UAV in the initial starting position
+            x_delta = 1
+            y_delta = 1
+            x = 0
+            y = 0
+            z = 5
+            for i in range(number_of_uav):
+                pose = Pose(Point(x, y, z), Quaternion(0, 0, 0, 1))
+
+                # fly to this position
+                uavs[i].takeoffAction()
+                uavs[i].poseAction(pose)
+
+                time.sleep(1)
+
+                x = x + x_delta
+                if i%4== 0 and i != 0:
+                    y = y + y_delta
+                    x = 0
+
+            for uav in uavs:
+                uav.poseActionWaitClient(40)
+
+            # Insert all of the UAV into a single structure
+            structure = Structure(uavs[0])
 
 
-        for i in range(1,number_of_uav):
-            structure.connectSingleUAV(uavs[i])
+            for i in range(1,number_of_uav):
+                structure.connectSingleUAV(uavs[i])
 
-        # append single structure into self.__structures
-        self.__structure.append(structure)
+            # append single structure into self.__structures
+            self.__structure.append(structure)
+
 
 
     def connectStructure(self, list_1_name, list_2_name):
